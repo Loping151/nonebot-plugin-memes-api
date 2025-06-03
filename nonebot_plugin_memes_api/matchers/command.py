@@ -29,7 +29,7 @@ from nonebot_plugin_alconna.uniseg.tools import image_fetch
 from nonebot_plugin_uninfo import Interface, QryItrface, Session, Uninfo, User
 from nonebot_plugin_waiter import waiter
 
-from ..config import memes_config, ban_path, use_gif, resize_image, resize_image_size
+from ..config import memes_config, ban_path, use_gif, resize_image, resize_image_size, notice_prob
 from ..exception import MemeGeneratorException
 from ..manager import meme_manager
 from ..recorder import record_meme_generation
@@ -149,7 +149,7 @@ async def process(
         result = resize_image(result, resize_image_size)
     msg += UniMessage.image(raw=result)
     
-    if random.random() < 0.1:
+    if random.random() < notice_prob:
         msg += "注意避免群聊刷屏哦~群管可启用禁用表情"
     
     await msg.send()

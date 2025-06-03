@@ -39,6 +39,7 @@ ban_path = '..' # 默认在Bot文件夹外 可改为 ./data/ban
 use_gif = False  # 是否使用gif表情
 resize_image = True  # 是否缩放图片
 resize_image_size = 360  # 缩放图片的最大尺寸
+notice_prob = 0.1  # 防刷屏提醒概率
 ```
 
 其余特性已与0.5.1保持一致。
