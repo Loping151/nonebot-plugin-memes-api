@@ -268,7 +268,7 @@ def create_matcher(meme: MemeInfo):
 
     meme_matcher_gif = on_alconna(
         Alconna(
-            [prefix + 'gif' for prefix in prefixes] + [prefix + 'gif ' for prefix in prefixes],
+            ['gif' + prefix for prefix in prefixes],
             meme.keywords[0],
             *options,
             arg_meme_params,
