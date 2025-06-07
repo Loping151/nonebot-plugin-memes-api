@@ -48,5 +48,6 @@ use_gif = False  # 是否使用gif表情
 resize_image = True  # 是否缩放图片
 resize_image_size = 360  # 缩放图片的最大尺寸
 notice_prob = 0.1  # 触发表情时的通知概率
+use_ban_word = True  # 是否启用敏感词过滤
 
 assert use_gif or resize_image, "use_gif和resize_image不能同时启用"

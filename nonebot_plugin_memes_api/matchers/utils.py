@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 import os
 
 from nonebot.adapters import Event
@@ -6,10 +6,15 @@ from nonebot.matcher import Matcher
 from nonebot.params import Depends
 from nonebot_plugin_uninfo import Uninfo
 from nonebot_plugin_waiter import waiter
+from nonebot.log import logger
 
 from ..manager import meme_manager
 from ..request import MemeInfo
 
+import pycurl
+from PIL import Image, UnidentifiedImageError
+from io import BytesIO
+import hashlib
 
 def get_user_id(uninfo: Uninfo) -> str:
     return f"{uninfo.scope}_{uninfo.self_id}_{uninfo.scene_path}"
@@ -73,3 +78,25 @@ def load_sensitive_words(file_path="../ban_word_list.txt"):
             return [line.strip() for line in f if line.strip()]
     except Exception:
         return []
+    
+def _download_pycurl(url: str) -> bytes:
+    buffer = BytesIO()
+    c = pycurl.Curl()
+    c.setopt(c.URL, url)
+    c.setopt(c.WRITEDATA, buffer)
+    c.setopt(c.FOLLOWLOCATION, True)
+    c.setopt(c.TIMEOUT, 20)
+    c.perform()
+    status_code = c.getinfo(pycurl.RESPONSE_CODE)
+    c.close()
+    if status_code != 200:
+        raise Exception(f"HTTP {status_code}")
+    return buffer.getvalue()
+    
+async def image_fetch_pucurl(url) -> Optional[bytes]:
+    try:
+        content = _download_pycurl(url)
+        return content  # type: ignore
+    except Exception as e:
+        logger.warning(f"❌ 下载图片失败: {url}, 错误: {e}")
+        return None

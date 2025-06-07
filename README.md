@@ -22,6 +22,8 @@ _✨ [Nonebot2](https://github.com/nonebot/nonebot2) 表情包制作插件 调�
 
 </div>
 
+## 版本 0.4.15
+
 ## ❗特色说明
 
 此分支适用于 `meme-generator` 的 Python 版本，具有以下额外特性：
@@ -30,6 +32,7 @@ _✨ [Nonebot2](https://github.com/nonebot/nonebot2) 表情包制作插件 调�
 - **禁用机制**：全局禁用采用强制禁用方式而非白名单，禁用数据存储路径为 `./data` 目录下。
 - **表情转换**：在 QQ 中以表情包形式发送表情，发送的表情看上去会更小，看起来舒服；或使用resize选项缩放来使图片变得更小，二选一。resize模式时，前缀前面加个gif可以强制返回gif，如前缀为bq时，gifbq xxx
 - **防止刷屏提醒** 以一定概率随表情发送 请勿刷屏 之类的消息，概率可在 `config.py` 中修改。
+- **稳定下载**：使用pycurl保证图片下载，绕过往往出现的ssl问题。
 
 配置项 `config.py` ：
 
@@ -40,6 +43,7 @@ use_gif = False  # 是否使用gif表情
 resize_image = True  # 是否缩放图片
 resize_image_size = 360  # 缩放图片的最大尺寸
 notice_prob = 0.1  # 防刷屏提醒概率
+use_ban_word = True  # 是否启用敏感词过滤
 ```
 
 其余特性已与0.5.1保持一致。

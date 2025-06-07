@@ -5,6 +5,7 @@ from itertools import chain
 from typing import Any, Union
 
 from arclet.alconna import config as alc_config
+import httpx
 from nonebot import get_driver
 from nonebot.adapters import Bot, Event
 from nonebot.exception import AdapterException
@@ -29,13 +30,13 @@ from nonebot_plugin_alconna.uniseg.tools import image_fetch
 from nonebot_plugin_uninfo import Interface, QryItrface, Session, Uninfo, User
 from nonebot_plugin_waiter import waiter
 
-from ..config import memes_config, ban_path, use_gif, resize_image, resize_image_size, notice_prob
+from ..config import memes_config, ban_path, use_gif, resize_image, resize_image_size, notice_prob, use_ban_word
 from ..exception import MemeGeneratorException
 from ..manager import meme_manager
 from ..recorder import record_meme_generation
 from ..request import MemeInfo, generate_meme
 from ..utils import NetworkError
-from .utils import UserId, load_sensitive_words
+from .utils import UserId, load_sensitive_words, image_fetch_pucurl
 from PIL import Image as PILImage
 
 alc_config.command_max_count += 1000
@@ -44,19 +45,22 @@ alc_config.command_max_count += 1000
 import io
 import os, requests
 os.makedirs(ban_path, exist_ok=True)
-try:
-    version = requests.get("https://download.loping151.com/ban_words/version.txt", timeout=10).text
-    ban_path_version = os.path.join(ban_path, f"ban_words_{version}.txt")
-    if not os.path.exists(ban_path_version):
-        resp = requests.get("https://download.loping151.com/ban_words/ban.txt", timeout=10)
-        if resp.status_code == 200:
-            with open(ban_path_version, "w", encoding="utf-8") as f:
-                f.write(resp.text)
-    ban_path = ban_path_version
-except Exception:
-    pass
 
-sensitive_words = load_sensitive_words(ban_path)
+sensitive_words = []
+if use_ban_word:
+    try:
+        version = requests.get("https://download.loping151.com/ban_words/version.txt", timeout=10).text
+        ban_path_version = os.path.join(ban_path, f"ban_words_{version}.txt")
+        if not os.path.exists(ban_path_version):
+            resp = requests.get("https://download.loping151.com/ban_words/ban.txt", timeout=10)
+            if resp.status_code == 200:
+                with open(ban_path_version, "w", encoding="utf-8") as f:
+                    f.write(resp.text)
+        ban_path = ban_path_version
+    except Exception:
+        pass
+
+    sensitive_words = load_sensitive_words(ban_path)
 
 def to_gif(img_bytes: bytes) -> bytes:
     try:
@@ -112,7 +116,12 @@ async def process(
 
     try:
         for image in images:
-            result = await image_fetch(event, bot, state, image)
+            print(image.url)
+            try:
+                result = await image_fetch(event, bot, state, image)
+            except httpx.ConnectError:
+                logger.warning('图片下载失败，尝试使用 pycurl (可能不支持全部平台) ')
+                result = await image_fetch_pucurl(image.url)
             if not isinstance(result, bytes):
                 raise NotImplementedError
             image_contents.append(result)
