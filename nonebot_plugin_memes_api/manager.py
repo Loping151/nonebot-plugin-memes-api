@@ -80,6 +80,13 @@ class MemeManager:
             config.black_list.remove(user_id)
         self.__dump()
         return True
+    
+    def get_black_list(self) -> list[str]:
+        black_list = []
+        for key, config in self.__meme_config.items():
+            if config.mode == MemeMode.WHITE:
+                black_list.append(key)
+        return black_list
 
     def change_mode(self, mode: MemeMode, meme_key: str):
         config = self.__meme_config[meme_key]

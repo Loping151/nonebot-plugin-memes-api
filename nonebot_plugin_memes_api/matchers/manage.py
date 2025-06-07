@@ -45,7 +45,14 @@ unblock_gl_matcher = on_alconna(
     use_cmd_start=True,
     permission=PERM_GLOBAL,
 )
-
+black_list_matcher = on_alconna(
+    Alconna("黑名单"),
+    aliases= ["禁用列表", "黑名单列表"],
+    block=True,
+    priority=11,
+    use_cmd_start=True,
+    permission=PERM_GLOBAL,
+)
 
 @block_matcher.handle()
 async def _(matcher: Matcher, user_id: UserId, meme_name: str):
@@ -75,3 +82,12 @@ async def _(matcher: Matcher, meme_name: str):
     meme = await find_meme(matcher, meme_name)
     meme_manager.change_mode(MemeMode.BLACK, meme.key)
     await matcher.finish(f"表情 {meme.key} 已设为黑名单模式")
+    
+    
+@black_list_matcher.handle()
+async def _(matcher: Matcher):
+    black_list = meme_manager.get_black_list()
+    if not black_list:
+        await matcher.finish("当前没有禁用的表情")
+    else:
+        await matcher.finish("当前禁用的表情列表：\n" + "\n".join(black_list))
