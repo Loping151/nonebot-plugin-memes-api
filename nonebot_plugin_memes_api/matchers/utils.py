@@ -72,7 +72,7 @@ async def find_meme(matcher: Matcher, meme_name: str) -> MemeInfo:
 
 def load_sensitive_words(file_path="../ban_word_list.txt"):
     if os.path.isdir(file_path):
-        return
+        return []
     try:
         with open(file_path, encoding="utf-8") as f:
             return [line.strip() for line in f if line.strip()]
