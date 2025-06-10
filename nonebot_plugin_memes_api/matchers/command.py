@@ -3,6 +3,7 @@ import random
 import traceback
 from itertools import chain
 from typing import Any, Union
+from nonebot.permission import SUPERUSER
 
 from arclet.alconna import config as alc_config
 import httpx
@@ -25,6 +26,7 @@ from nonebot_plugin_alconna import (
     UniMsg, # ？为啥多此一举
     on_alconna,
 )
+from nonebot.internal.matcher.matcher import Matcher
 from nonebot_plugin_alconna.builtins.extensions.reply import ReplyMergeExtension
 from nonebot_plugin_alconna.uniseg.tools import image_fetch
 from nonebot_plugin_uninfo import Interface, QryItrface, Session, Uninfo, User
@@ -479,9 +481,9 @@ def destroy_matchers():
 
 
 random_matcher = on_alconna(
-    Alconna("随机表情", arg_meme_params),
+    Alconna([prefix + "随机表情" for prefix in prefixes], arg_meme_params),
     block=False,
-    priority=12,
+    priority=10,
     use_cmd_start=True,
     extensions=[ReplyMergeExtension()],
 )
@@ -506,14 +508,25 @@ async def _(
         for meme in meme_manager.get_memes()
         if meme_manager.check(user_id, meme.key)
         and (
-            (meme.params_type.min_images <= len(images) <= meme.params_type.max_images)
-            and (meme.params_type.min_texts <= len(texts) <= meme.params_type.max_texts)
+            (meme.params_type.min_images - 1 <= len(images) <= meme.params_type.max_images)
+            and (meme.params_type.min_texts - 1 <= len(texts) <= meme.params_type.max_texts)
         )
     ]
-    if not available_memes:
-        await matcher.finish("找不到符合参数数量的表情")
+            
 
     random_meme = random.choice(available_memes)
+    
+    if len(texts) == random_meme.params_type.min_texts - 1:
+        texts.append(random_meme.params_type.default_texts[0])
+        
+    if len(images) == random_meme.params_type.min_images - 1:
+        user = session.user
+        if image_url := user.avatar:
+            images.append(Image(url=image_url))
+        if (member := session.member) and member.nick:
+            user.nick = member.nick
+        users.append(user)
+    
     await process(
         bot,
         event,
@@ -527,8 +540,7 @@ async def _(
         show_info=memes_config.memes_random_meme_show_info,
     )
 
-
-refresh_matcher = on_alconna("更新表情", aliases={"刷新表情"}, block=True, priority=11)
+refresh_matcher = on_alconna("更新表情", aliases={"刷新表情"}, permission=SUPERUSER, block=True, priority=11)
 
 
 @refresh_matcher.handle()
@@ -543,11 +555,9 @@ from nonebot import get_driver
 
 driver = get_driver()
 
-
 async def init():
     await meme_manager.init()
     create_matchers()
-
 
 @driver.on_startup
 async def _():
