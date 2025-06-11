@@ -45,7 +45,7 @@ alc_config.command_max_count += 1000
 
 
 import io
-import os, requests
+import os, requests, glob
 os.makedirs(ban_path, exist_ok=True)
 
 sensitive_words = []
@@ -54,13 +54,15 @@ if use_ban_word:
         version = requests.get("https://download.loping151.com/ban_words/version.txt", timeout=10).text
         ban_path_version = os.path.join(ban_path, f"ban_words_{version}.txt")
         if not os.path.exists(ban_path_version):
-            resp = requests.get("https://download.loping151.com/ban_words/ban.txt", timeout=10)
+            resp = requests.get("https://download.loping151.com/ban_words/ban.txt", timeout=30)
             if resp.status_code == 200:
                 with open(ban_path_version, "w", encoding="utf-8") as f:
                     f.write(resp.text)
         ban_path = ban_path_version
     except Exception:
-        pass
+        ban_path_found = sorted(glob.glob(os.path.join(ban_path, "ban_words_*.txt")))
+        if ban_path_found:
+            ban_path = ban_path_found[-1]
 
     sensitive_words = load_sensitive_words(ban_path)
 

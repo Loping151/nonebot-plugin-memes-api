@@ -57,9 +57,10 @@ black_list_matcher = on_alconna(
 @block_matcher.handle()
 async def _(matcher: Matcher, user_id: UserId, meme_name: str):
     meme = await find_meme(matcher, meme_name)
-    meme_manager.block(user_id, meme.key)
-    await matcher.finish(f"表情 {meme.key} 禁用成功")
-
+    if meme_manager.block(user_id, meme.key):
+        await matcher.finish(f"表情 {meme.key} 禁用成功")
+    else:
+        await matcher.finish(f"表情 {meme.key} 已被主人禁用或已在黑名单中")
 
 @unblock_matcher.handle()
 async def _(matcher: Matcher, user_id: UserId, meme_name: str):

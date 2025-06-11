@@ -67,15 +67,14 @@ class MemeManager:
         config = self.__meme_config[meme_key]
         if config.mode == MemeMode.BLACK and user_id not in config.black_list:
             config.black_list.append(user_id)
-        if config.mode == MemeMode.WHITE and user_id in config.white_list:
-            config.white_list.remove(user_id)
-        self.__dump()
+            self.__dump()
+            return True
+        return False
 
     def unblock(self, user_id: str, meme_key: str):
         config = self.__meme_config[meme_key]
-        if config.mode == MemeMode.WHITE and user_id not in config.white_list:
+        if config.mode == MemeMode.WHITE:
             return False
-            # config.white_list.append(user_id)
         if config.mode == MemeMode.BLACK and user_id in config.black_list:
             config.black_list.remove(user_id)
         self.__dump()
